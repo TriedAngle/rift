@@ -1,3 +1,9 @@
-logs/
-assets/icons/party/
-assets/icons/spells/
+rift
+rift.exe
+
+logs/*
+assets/icons/party/*
+assets/icons/spells/*
+
+!assets/icons/party/Readme.md
+!assets/icons/spells/Readme.md
