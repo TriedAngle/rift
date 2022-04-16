@@ -1,4 +1,4 @@
-import std/[os, strutils, strformat, options]
+import std/[os, strutils, strformat, options, tables]
 import nimgl/imgui, nimgl/imgui/[impl_opengl, impl_glfw]
 import nimgl/[opengl, glfw]
 import glm
@@ -10,6 +10,7 @@ import ./gfx/window
 import ./keys
 import ./ui/[overlay, launcher]
 import ./lcu/lcu
+import ./utils
 
 
 
@@ -72,6 +73,8 @@ proc main() =
     .withOpenGL()
     .withImGui()
     .withStyle(imGuiCherryStyle)
+
+  initLauncherImages(images)
 
   let io = igGetIO()
 

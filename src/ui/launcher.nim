@@ -1,15 +1,17 @@
-import std/[strutils, strformat, options]
+import std/[strutils, strformat, options, tables]
 import ../log
 import nimgl/[opengl, imgui]
 import riftlib/types/consts
-import ../util
+import ../utils
 
-var
-  texturePositionBottom: GLuint
-  imagePositionBottom = "assets/icons/party/icon-position-bottom.png".readImage()
 
-imagePositionBottom.loadTextureFromData(texturePositionBottom)
-  
+proc initLauncherImages*(images: var Table[string, Image]) =
+  var   
+    texPosBot: GLuint
+    imgPosBot = "assets/icons/party/icon-position-bottom.png".readImage()
+
+  imgPosBot.loadTextureFromData(texPosBot)
+  images["posBot"] = (texPosBot, imgPosBot)
 
 type
   Rank* = object
@@ -70,7 +72,8 @@ proc lobby*(selectedQueue: Option[Queue], lobby: Lobby) =
       else:
         igText(cstring("Unraked"))
       igNextColumn()
-      igImage(cast[ptr ImTextureID](texturePositionBottom), ImVec2(x: imagePositionBottom.width.float32, y: imagePositionBottom.height.float32))
+      let img = images["posBot"]
+      igImage(cast[ptr ImTextureID](img.texture), ImVec2(x: img.data.width.float32, y: img.data.height.float32))
       igNextColumn()
       igEndColumns()
       igDummy(ImVec2(x: 0.0, y: 25))

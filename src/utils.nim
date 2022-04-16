@@ -1,8 +1,13 @@
 import nimgl/opengl
 import stb_image/read as stbi
+import std/tables
 
 type
-  ImageData = tuple[image: seq[byte], width, height: int]
+  Image* = tuple[texture: GLuint, data: ImageData]
+  ImageData* = tuple[image: seq[byte], width, height: int]
+
+var images* = initTable[string, Image]()
+
 
 proc readImage*(path: string): ImageData = 
   var channels: int
