@@ -4,9 +4,6 @@ import std/sequtils
 
 export logging
 
-proc initLogging*() =
-    writeFile("log.log", "")
-
 proc registerLoggers*(file: string) =
     let consoleLogger = newConsoleLogger(fmtStr=fmt"[$time] - $levelname: ")
     let fileLogger = newFileLogger(fmt"logs/{file}.log", fmWrite, lvlAll, "[$time] - $levelname: ")

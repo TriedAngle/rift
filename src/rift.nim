@@ -51,7 +51,6 @@ const lobby = Lobby(
 
 
 proc main() =
-  initLogging()
   registerLoggers("main")
   logThreaded(lvlInfo, "Starting Rift")
 
