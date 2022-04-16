@@ -5,15 +5,24 @@ import riftlib/types/consts
 import ../utils
 
 
-proc initLauncherImages*(images: var Table[string, Image]) =
-  var   
-    texPosBot: GLuint
-    imgPosBot = "assets/icons/party/icon-position-bottom.png".readImage()
+proc initLauncherImages*(images: ref Table[string, Image]) =
+  proc loadImage(name, path: string) =
+    var   
+      texPosBot: GLuint
+      imgPosBot = path.readImage()
+    imgPosBot.loadTextureFromData(texPosBot)
+    images[name] = (texPosBot, imgPosBot)
 
-  imgPosBot.loadTextureFromData(texPosBot)
-  images["posBot"] = (texPosBot, imgPosBot)
+  loadImage("posTop", "assets/icons/party/icon-position-top.png")
+  loadImage("posJgl", "assets/icons/party/icon-position-jungle.png")
+  loadImage("posMid", "assets/icons/party/icon-position-middle.png")
+  loadImage("posBot", "assets/icons/party/icon-position-bottom.png")
+  loadImage("posSup", "assets/icons/party/icon-position-utility.png")
+  loadImage("posFil", "assets/icons/party/icon-position-fill.png")
+  loadImage("posNon", "assets/icons/party/icon-position-unselected.png")
 
 type
+
   Rank* = object
     tier*: Tier
     division*: Division
@@ -38,6 +47,16 @@ type
     leader*: SummonerId
     members*: seq[LobbyMember]
 
+
+proc drawRole(role: Position) =
+  case role:
+  of Position.Top: drawImage("posTop", 60, 60)
+  of Position.Jungle: drawImage("posJgl", 60, 60)
+  of Position.Middle: drawImage("posMid", 60, 60)
+  of Position.Bottom: drawImage("posBot", 60, 60)
+  of Position.Utility: drawImage("posSup", 60, 60)
+  of Position.Fill: drawImage("posFil", 60, 60)
+  of Position.Unselected: drawImage("posNon", 60, 60)
 
 proc lAccounts*(accounts: seq[Account]) =
   for i, account in accounts:
@@ -65,6 +84,7 @@ proc lobby*(selectedQueue: Option[Queue], lobby: Lobby) =
       igSameLine()
       igColumns(3)
       igSetColumnOffset(1, 200.0)
+      igSetColumnOffset(2, 350.0)
       igText(cstring(fmt"{member.name}"))
       igSetWindowFontScale(1.0)
       if member.solo.tier != Tier.Unranked:
@@ -72,8 +92,9 @@ proc lobby*(selectedQueue: Option[Queue], lobby: Lobby) =
       else:
         igText(cstring("Unraked"))
       igNextColumn()
-      let img = images["posBot"]
-      igImage(cast[ptr ImTextureID](img.texture), ImVec2(x: img.data.width.float32, y: img.data.height.float32))
+      drawRole(member.position1)
+      igSameLine()
+      drawRole(member.position2)
       igNextColumn()
       igEndColumns()
       igDummy(ImVec2(x: 0.0, y: 25))

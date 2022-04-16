@@ -11,7 +11,7 @@ import ./keys
 import ./ui/[overlay, launcher]
 import ./lcu/lcu
 import ./utils
-
+import ./widgets/runes
 
 
 const accounts = @[
@@ -39,13 +39,17 @@ const lobby = Lobby(
       accountName: "your little meow#EUW", 
       solo: Rank(tier: Tier.Diamond, division: Division.IV), 
       flex: Rank(tier: Tier.Gold, division: Division.III),
+      position1: Position.Middle,
+      position2: Position.Utility
     ),
     LobbyMember(
       id: 34729322.SummonerId, 
       name: "No Cat Complex", 
       accountName: "no cat complex#EUW", 
       solo: Rank(tier: Tier.Platinum, division: Division.IV), 
-      flex: Rank(tier: Tier.Unranked, division: Division.NA)
+      flex: Rank(tier: Tier.Unranked, division: Division.NA),
+      position1: Position.Jungle,
+      position2: Position.Unselected
     ),
 ])
 
@@ -90,7 +94,8 @@ proc main() =
   var currentRunePrimary = none PerkCategory
   var currentRuneSecondary = none PerkCategory
   var selectedRunes = newSeq[Option[Perk]](9)
-  
+  var runePages = loadRunes()
+
   var selectedRole1 = none Position
   var selectedRole2 = none Position
 
@@ -262,14 +267,26 @@ proc main() =
     if showRunes:
       igBegin("Runes")
       igColumns(3)
-      igSetColumnOffset(1, 128)
+      igSetColumnOffset(1, 150)
       block:
         igText("Pages:")
         igInputText("", runePageNameNew[0].addr, runePageNameNew.len().uint)
         igSameLine()
         if igButton("+"):
-          echo "added: ", runePageNameNew
+          var runes: seq[Perk]
+          for rune in selectedRunes:
+            runes.add rune.get()
+          var name: string
+          for c in runePageNameNew:
+            if c == '\0': break
+            name.add c
+
+          let page = toRunePage(name, currentRunePrimary.get(), currentRuneSecondary.get(), runes)
+          page.save()
+          runePages = loadRunes()
           runePageNameNew = newString(40)
+        for runePage in runePages:
+          igText(cstring(runePage.name))
       igNextColumn()
       block:
         igBeginChild("Page Primary")

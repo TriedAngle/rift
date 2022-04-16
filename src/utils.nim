@@ -1,13 +1,25 @@
-import nimgl/opengl
+import nimgl/[opengl, imgui]
 import stb_image/read as stbi
-import std/tables
+import std/[tables, os]
+
+when defined posix:
+  const configPath* = getHomeDir() & ".config/rift/"
+else:
+  const configPath* = getHomeDir() & "AppData\\Rift\\"
 
 type
   Image* = tuple[texture: GLuint, data: ImageData]
   ImageData* = tuple[image: seq[byte], width, height: int]
 
-var images* = initTable[string, Image]()
+var images* = newTable[string, Image]()
 
+proc drawImage*(name: string) =
+  let img = images[name]
+  igImage(cast[ptr ImTextureID](img.texture), ImVec2(x: img.data.width.float32, y: img.data.height.float32))
+
+proc drawImage*(name: string, width, height: float32) =
+  let img = images[name]
+  igImage(cast[ptr ImTextureID](img.texture), ImVec2(x: width, y: height))
 
 proc readImage*(path: string): ImageData = 
   var channels: int
@@ -29,3 +41,17 @@ proc loadTextureFromData*(data: var ImageData, outTexture: var GLuint) =
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0)
 
     glTexImage2D(GL_TEXTURE_2D, GLint 0, GL_RGBA.GLint, GLsizei data.width, GLsizei data.height, GLint 0, GL_RGBA, GL_UNSIGNED_BYTE, data.image[0].addr)
+
+
+proc createDirIfNotExist(path: string) =
+  if not dirExists(path):
+    createDir(path)
+
+proc saveData*(name: string, data: string, path: string = "") =
+  let path = configPath & path
+  createDirIfNotExist(path)
+  writeFile(path & "/" & name, data)
+
+proc readData*(name: string, path: string = ""): string =
+  let path = configPath & path
+  readFile(path & "/" & name)
