@@ -55,3 +55,4 @@ proc saveData*(name: string, data: string, path: string = "") =
 proc readData*(name: string, path: string = ""): string =
   let path = configPath & path
   readFile(path & "/" & name)
+

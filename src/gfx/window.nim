@@ -1,7 +1,8 @@
+import std/[options, strformat]
 import nimgl/imgui, nimgl/imgui/[impl_opengl, impl_glfw]
 import nimgl/[glfw, opengl]
+import ../log
 
-import std/options
 
 type
   WindowBuilder = object
@@ -90,6 +91,7 @@ proc setWindowFlag*(window: Window, name: int32, value: int32) =
   window.internalWindow.setWindowAttrib(name, value)
 
 proc setContext*(window: Window) = 
+  logThreaded(lvlDebug, "Set: GLFW Context")
   window.internalWindow.makeContextCurrent()
 
 proc setCallback*(window: Window, callback: GLFWKeyfun) =
@@ -104,13 +106,13 @@ proc withOpenGL*(window: Window): Window =
   result = window
   result.isOpenGL = true
   doAssert glInit()
-  echo $glVersionMajor & "." & $glVersionMinor
+  logThreaded(lvlDebug, fmt"Init: OpenGL {glVersionMajor}.{glVersionMinor}")
   # result.internalWindow.setFramebufferSizeCallback(frameBufferCallback)
 
 proc initOpenGL*(window: Window) =
   window.isOpenGL = true
   doAssert glInit()
-  echo $glVersionMajor & "." & $glVersionMinor
+  logThreaded(lvlDebug, fmt"Init: OpenGL {glVersionMajor}.{glVersionMinor}")
 
 # imGUI
 proc withImGui*(window: Window): Window =
@@ -118,11 +120,13 @@ proc withImGui*(window: Window): Window =
   result.igContext = some(igCreateContext())
   doAssert igGlfwInitForOpenGL(result.internalWindow, true)
   doAssert igOpenGL3Init()
+  logThreaded(lvlDebug, fmt"Init: ImGui [OpenGL]")
 
 proc initImGui*(window: Window) =
   window.igContext = some(igCreateContext())
   doAssert igGlfwInitForOpenGL(window.internalWindow, true)
   doAssert igOpenGL3Init()
+  logThreaded(lvlDebug, fmt"Init: ImGui [OpenGL]")
 
 proc withStyle*(window: Window, style: proc(dst: ptr ImGuiStyle = nil)): Window =
   result = window
@@ -137,6 +141,7 @@ proc imGuiCherryStyle*(dst: ptr ImGuiStyle = nil) = igStyleColorsCherry()
 
 # other
 proc run*(window: Window, loop: proc()) =
+  logThreaded(lvlDebug, fmt"Start: Window Loop")
   while not window.shouldClose():
     glClearColor(0.0, 0.0, 0.0, 0.0)
     glClear(GL_COLOR_BUFFER_BIT)
@@ -147,6 +152,28 @@ proc run*(window: Window, loop: proc()) =
       igNewFrame()
 
     loop()
+
+    if window.igContext.isSome():
+      igRender()
+      igOpenGL3RenderDrawData(igGetDrawData())
+
+    window.swapBuffers()
+    glfwPollEvents()
+  
+  window.close()
+
+template runIt*(window: Window, body: untyped) =
+  logThreaded(lvlDebug, fmt"Start: Window Loop")
+  while not window.shouldClose():
+    glClearColor(0.0, 0.0, 0.0, 0.0)
+    glClear(GL_COLOR_BUFFER_BIT)
+
+    if window.igContext.isSome():
+      igOpenGL3NewFrame()
+      igGlfwNewFrame()
+      igNewFrame()
+
+    body
 
     if window.igContext.isSome():
       igRender()
